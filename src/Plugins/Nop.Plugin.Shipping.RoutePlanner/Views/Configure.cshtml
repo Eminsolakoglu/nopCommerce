@@ -1,0 +1,12 @@
+﻿@model Nop.Plugin.Shipping.RoutePlanner.Models.ConfigurationModel
+
+
+
+@{
+    Layout = "_ConfigurePlugin";
+}
+@await Component.InvokeAsync("StoreScopeConfiguration")
+<form asp-controller="RoutePlanner" asp-action="Configure" method="post">
+    <h3>New yorktaki dağıtılacak sipariş sayısı  @Model.OrderCount</h3>
+                
+</form>

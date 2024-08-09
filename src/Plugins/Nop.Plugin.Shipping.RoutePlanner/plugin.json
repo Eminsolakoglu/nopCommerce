@@ -1,0 +1,11 @@
+﻿{
+  "Group": "Shipping rate computation",
+  "FriendlyName": "RoutePlanner",
+  "SystemName": "Shipping.RoutePlanner",
+  "Version": "1.00",
+  "SupportedVersions": [ "4.50" ],
+  "Author": "berkut team",
+  "DisplayOrder": 1,
+  "FileName": "Nop.Plugin.Shipping.RoutePlanner.dll",
+  "Description": "bu plugin atıksız dağıtımı amaclar"
+}
