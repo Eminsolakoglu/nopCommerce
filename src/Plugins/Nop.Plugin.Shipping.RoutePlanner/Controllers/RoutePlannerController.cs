@@ -5,7 +5,12 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Nop.Core;
+using Nop.Core.Domain.Common;
+using Nop.Core.Domain.Orders;
+using Nop.Data;
 using Nop.Plugin.Shipping.RoutePlanner.Models;
+using Nop.Plugin.Shipping.RoutePlanner.Services;
+
 using Nop.Services.Configuration;
 using Nop.Services.Localization;
 using Nop.Services.Messages;
@@ -29,6 +34,9 @@ namespace Nop.Plugin.Shipping.RoutePlanner.Controllers
         private readonly ISettingService _settingService;
         private readonly INotificationService _notificationService;
         private readonly ILocalizationService _localizationService;
+        private readonly IRepository<Address> _addressRepository;
+        private readonly IRepository<Order> _orderRepository;
+        private readonly IRoutePlannerService _routePlannerService;
 
         #endregion
 
@@ -38,7 +46,12 @@ namespace Nop.Plugin.Shipping.RoutePlanner.Controllers
             IStoreContext storeContext,
             ISettingService settingService,
             INotificationService notificationService,
-            ILocalizationService localizationService
+            ILocalizationService localizationService,
+            IRepository<Address> addressRepository,
+            IRepository<Order> orderRepository,
+            IRoutePlannerService routePlannerService // Add this
+
+
             )
         {
             _permissionService= permissionService;
@@ -46,6 +59,9 @@ namespace Nop.Plugin.Shipping.RoutePlanner.Controllers
             _settingService = settingService;
             _notificationService = notificationService;
             _localizationService = localizationService;
+            _addressRepository = addressRepository;
+            _orderRepository = orderRepository;
+            _routePlannerService = routePlannerService;
         }
 
         #endregion
@@ -58,13 +74,35 @@ namespace Nop.Plugin.Shipping.RoutePlanner.Controllers
 
             var storeScope=await _storeContext.GetActiveStoreScopeConfigurationAsync();
             var settings = await _settingService.LoadSettingAsync<RoutePlannerSettings>(storeScope);
+            //    // PickupInStore 0 olan siparişlerin BillingAddressId'sini al
+            //    var billingAddressIds = _orderRepository.Table
+            //        .Where(o => o.PickupInStore == false)
+            //        .Select(o => o.BillingAddressId)
+            //        .ToList();
+            //    var cityName = "New York";
+            //    var addressCount = _addressRepository.Table
+            //.Where(a => billingAddressIds.Contains(a.Id) && a.City == cityName)
+            //.Count();
+            var ordersNotPickedUp = _routePlannerService.GetOrdersNotPickedUp();
+            var counties = _routePlannerService.GetCounties(); // GetCounties çağrısı
+            var ordersWithCounties = await _routePlannerService.GetOrdersNotPickedUpWithCounties();
+
+
+
+
             var model = new ConfigurationModel
             {
                 WidgetzoneContent = settings.WidgetzoneContent,
-                WidgetzoneContent_OverrideForStore = await _settingService.SettingExistsAsync(settings, x => x.WidgetzoneContent, storeScope)
-            };
-          
+                WidgetzoneContent_OverrideForStore = await _settingService.SettingExistsAsync(settings, x => x.WidgetzoneContent, storeScope),
+                //OrderCount= addressCount,
+                OrderCount = _routePlannerService.GetGreenaddressCount(),
+                // OrdersNotPickedUp = ordersNotPickedUp,
+                //  Counties = counties // Counties verisini ekleyin
+                OrdersNotPickedUp = ordersWithCounties // Güncellenmiş veri
 
+
+
+            };
             return View(RoutePlannerDefaults.ViewPath + "Configure.cshtml",model);
         }
         [HttpPost]

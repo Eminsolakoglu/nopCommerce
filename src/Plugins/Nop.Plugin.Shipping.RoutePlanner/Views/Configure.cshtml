@@ -1,12 +1,27 @@
 ﻿@model Nop.Plugin.Shipping.RoutePlanner.Models.ConfigurationModel
 
-
-
 @{
     Layout = "_ConfigurePlugin";
 }
 @await Component.InvokeAsync("StoreScopeConfiguration")
+
 <form asp-controller="RoutePlanner" asp-action="Configure" method="post">
-    <h3>New yorktaki dağıtılacak sipariş sayısı  @Model.OrderCount</h3>
-                
+    <h2>İstanbul'daki dağıtılmamış siparişler</h2>
+    <table class="table table-bordered">
+        <tr>
+            <th>Custom Order Number</th>
+            <th>Sipariş Verilme Tarihi</th>
+            <th>İlçe</th>
+        </tr>
+        @foreach (var order in Model.OrdersNotPickedUp)
+        {
+            <tr>
+                <td>@order.CustomOrderNumber</td>
+                <td>@order.PaidDateUtc?.ToString("yyyy-MM-dd HH:mm:ss")</td>
+                <td>@order.County</td>
+            </tr>
+        }
+    </table>
+
+    <h3>New York'taki dağıtılacak sipariş sayısı @Model.OrderCount</h3>
 </form>

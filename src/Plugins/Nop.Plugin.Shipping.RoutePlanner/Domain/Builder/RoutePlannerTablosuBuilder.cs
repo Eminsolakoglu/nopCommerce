@@ -15,7 +15,7 @@ namespace Nop.Plugin.Shipping.RoutePlanner.Domain.Builder
         {
             table
                 .WithColumn(nameof(RoutePlannerTablosu.State)).AsString().NotNullable()
-                .WithColumn(nameof(RoutePlannerTablosu.State)).AsString().Nullable()
+                .WithColumn(nameof(RoutePlannerTablosu.City)).AsString().Nullable()
                 
                 .WithColumn(nameof(RoutePlannerTablosu.OrderCount)).AsInt32().NotNullable();
         }
