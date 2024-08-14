@@ -67,6 +67,20 @@ namespace Nop.Plugin.Shipping.RoutePlanner.Controllers
         #endregion
 
         #region Methods
+
+        public async Task<IActionResult> OrderRouting()
+        {
+            // Modeli oluşturup gerekli verileri atıyoruz
+            var ordersWithCounties =await _routePlannerService.GetOrdersNotPickedUpWithCounties();
+
+            var model = new ConfigurationModel
+            {
+                OrdersNotPickedUp = ordersWithCounties
+            };
+
+            return View("~/Plugins/Shipping.RoutePlanner/Views/OrderRouting.cshtml", model);
+        }
+
         public async Task<IActionResult> Configure()
         {
             if (!await _permissionService.AuthorizeAsync(StandardPermissionProvider.ManagePlugins))
@@ -74,15 +88,6 @@ namespace Nop.Plugin.Shipping.RoutePlanner.Controllers
 
             var storeScope=await _storeContext.GetActiveStoreScopeConfigurationAsync();
             var settings = await _settingService.LoadSettingAsync<RoutePlannerSettings>(storeScope);
-            //    // PickupInStore 0 olan siparişlerin BillingAddressId'sini al
-            //    var billingAddressIds = _orderRepository.Table
-            //        .Where(o => o.PickupInStore == false)
-            //        .Select(o => o.BillingAddressId)
-            //        .ToList();
-            //    var cityName = "New York";
-            //    var addressCount = _addressRepository.Table
-            //.Where(a => billingAddressIds.Contains(a.Id) && a.City == cityName)
-            //.Count();
             var ordersNotPickedUp = _routePlannerService.GetOrdersNotPickedUp();
             var counties = _routePlannerService.GetCounties(); // GetCounties çağrısı
             var ordersWithCounties = await _routePlannerService.GetOrdersNotPickedUpWithCounties();
@@ -94,10 +99,8 @@ namespace Nop.Plugin.Shipping.RoutePlanner.Controllers
             {
                 WidgetzoneContent = settings.WidgetzoneContent,
                 WidgetzoneContent_OverrideForStore = await _settingService.SettingExistsAsync(settings, x => x.WidgetzoneContent, storeScope),
-                //OrderCount= addressCount,
                 OrderCount = _routePlannerService.GetGreenaddressCount(),
-                // OrdersNotPickedUp = ordersNotPickedUp,
-                //  Counties = counties // Counties verisini ekleyin
+
                 OrdersNotPickedUp = ordersWithCounties // Güncellenmiş veri
 
 

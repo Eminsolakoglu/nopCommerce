@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Routing;
 using Nop.Core;
 using Nop.Services.Cms;
 using Nop.Services.Configuration;
@@ -10,12 +11,13 @@ using Nop.Services.Localization;
 using Nop.Services.Plugins;
 using Nop.Services.Shipping;
 using Nop.Services.Shipping.Tracking;
+using Nop.Web.Framework;
 using Nop.Web.Framework.Infrastructure;
 using Nop.Web.Framework.Menu;
 
 namespace Nop.Plugin.Shipping.RoutePlanner
 {
-    public class RoutePlannerPlugin : BasePlugin, IWidgetPlugin
+    public class RoutePlannerPlugin : BasePlugin, IWidgetPlugin ,IAdminMenuPlugin
     {
         #region Fields
         private readonly ISettingService _settingService;
@@ -120,6 +122,29 @@ namespace Nop.Plugin.Shipping.RoutePlanner
                 PublicWidgetZones.HeaderMiddle
             };
             return await Task.FromResult(widgetZones);
+        }
+
+        public Task ManageSiteMapAsync(SiteMapNode rootNode)
+        {
+                var menuItem = new SiteMapNode()
+                {
+                    SystemName = "Shipping.RoutePlanner",
+                    Title = "Route Planner",
+                    ControllerName = "RoutePlanner",
+                    ActionName = "OrderRouting",
+                    Visible = true,
+                    IconClass = "far fa-dot-circle-o",
+                    RouteValues = new RouteValueDictionary() { { "area", AreaNames.Admin } },
+                };
+
+                var pluginNode = rootNode.ChildNodes.FirstOrDefault(x => x.SystemName == "Third party plugins");
+                if (pluginNode != null)
+                    pluginNode.ChildNodes.Add(menuItem);
+                else
+                    rootNode.ChildNodes.Add(menuItem);
+
+            return Task.CompletedTask;
+
         }
     }
 }

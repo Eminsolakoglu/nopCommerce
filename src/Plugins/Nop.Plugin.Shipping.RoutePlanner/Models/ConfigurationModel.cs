@@ -30,8 +30,15 @@ namespace Nop.Plugin.Shipping.RoutePlanner.Models
     }
     public class OrderViewModel
     {
+        public int Id { get; set; }
         public string CustomOrderNumber { get; set; }
         public DateTime? PaidDateUtc { get; set; }
         public string County { get; set; }
+        public string Address1 { get; set; }
+        public string PhoneNumber { get; set; }
+        public string FirstName { get; set; }
+        public string LastName { get; set; }
+        public string ZipPostalCode { get; set; }
+
     }
 }

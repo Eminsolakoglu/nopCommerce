@@ -1,0 +1,185 @@
+﻿@model Nop.Plugin.Shipping.RoutePlanner.Models.ConfigurationModel
+
+@{
+    Layout = "_AdminLayout";
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Filtreli Sipariş Tablosu</title>
+    <style>
+        /* Genel stiller */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f8f9fa;
+        }
+
+        .container {
+            margin: 20px;
+        }
+
+        .filter-section {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+            .filter-section input, .filter-section select {
+                padding: 8px;
+                width: 200px;
+            }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+            .table th, .table td {
+                border: 1px solid #ddd;
+                padding: 8px;
+            }
+
+            .table th {
+                background-color: #f2f2f2;
+            }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Filtreli Sipariş Tablosu</h2>
+
+        <!-- Filtreleme Alanı -->
+        <div class="filter-section">
+            <div>
+                <label for="startDate">Başlangıç Tarihi:</label><br>
+                <input type="date" id="startDate" />
+            </div>
+            <div>
+                <label for="endDate">Bitiş Tarihi:</label><br>
+                <input type="date" id="endDate" />
+            </div>
+            <div>
+                <label for="orderNumber">Sipariş Numarası:</label><br>
+                <input type="text" id="orderNumber" placeholder="Sipariş No" />
+            </div>
+            <div>
+                <label for="county">İlçe:</label><br>
+                <input type="text" id="county" placeholder="İlçe" />
+            </div>
+            <button id="filterButton">Filtrele</button>
+        </div>
+
+        <!-- Sipariş Tablosu -->
+        <table class="table">
+            <thead>
+                <tr>
+                    <td><input type="checkbox" class="orderCheckbox" /></td>
+                    <th>Order Number</th>
+                    <th>Paid Date</th>
+                    <th>County</th>
+                    <th>Address</th>
+                    <th>Phone Number</th>
+                    <th>First Name</th>
+                    <th>Last Name</th>
+                    <th>ZipPostalCode</th>
+                </tr>
+            </thead>
+            <tbody id="orderTableBody">
+                <!-- Dinamik olarak veritabanından gelen siparişler -->
+                @foreach (var order in Model.OrdersNotPickedUp)
+                {
+                    <tr>
+                        <td><input type="checkbox" class="orderCheckbox" value="@order.Id" /></td>
+                        <td>@order.CustomOrderNumber</td>
+                        <td>@order.PaidDateUtc?.ToString("yyyy-MM-dd HH:mm:ss")</td>
+                        <td>@order.County</td>
+                        <td>@order.Address1</td>
+                        <td>@order.PhoneNumber</td>
+                        <td>@order.FirstName</td>
+                        <td>@order.LastName</td>
+                        <td>@order.ZipPostalCode</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+        <!-- Sırala butonu -->
+        <button id="sortButton">Seçilenleri Sırala</button>
+
+        <!-- Seçilenler Tablosu -->
+        <h2>Rotalanacak Siparişler</h2>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th> </th>
+                    <th>Order Number</th>
+                    <th>Paid Date</th>
+                    <th>County</th>
+                    <th>Address</th>
+                    <th>Phone Number</th>
+                    <th>First Name</th>
+                    <th>Last Name</th>
+                    <th>ZipPostalCode</th>
+                </tr>
+            </thead>
+            <tbody id="selectedTableBody">
+                <!-- Seçilen siparişler burada görünecek -->
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        // Tüm checkbox'ları kontrol eden checkbox
+        document.querySelector("thead .orderCheckbox").addEventListener("change", function () {
+            var isChecked = this.checked;
+            var checkboxes = document.querySelectorAll("tbody .orderCheckbox");
+            checkboxes.forEach(function (checkbox) {
+                checkbox.checked = isChecked;
+            });
+        });
+
+        // Filtreleme işlemi
+        document.getElementById("filterButton").addEventListener("click", function () {
+            var startDate = document.getElementById("startDate").value;
+            var endDate = document.getElementById("endDate").value;
+            var orderNumber = document.getElementById("orderNumber").value.toLowerCase();
+            var county = document.getElementById("county").value.toLowerCase();
+            var rows = document.querySelectorAll("#orderTableBody tr");
+
+            rows.forEach(function (row) {
+                var orderDate = row.cells[2].textContent;
+                var orderNum = row.cells[1].textContent.toLowerCase();
+                var orderCounty = row.cells[3].textContent.toLowerCase();
+
+                // Filtre koşullarını kontrol et
+                if ((startDate === "" || new Date(orderDate) >= new Date(startDate)) &&
+                    (endDate === "" || new Date(orderDate) <= new Date(endDate)) &&
+                    (orderNumber === "" || orderNum.includes(orderNumber)) &&
+                    (county === "" || orderCounty.includes(county))) {
+                    row.style.display = ""; // Satırı göster
+                } else {
+                    row.style.display = "none"; // Satırı gizle
+                }
+            });
+        });
+
+        // Seçilen siparişleri sırala
+        document.getElementById("sortButton").addEventListener("click", function () {
+            var selectedTable = document.getElementById("selectedTableBody");
+            var orderTable = document.getElementById("orderTableBody");
+            var selectedRows = Array.from(orderTable.querySelectorAll("tr")).filter(function (row) {
+                var checkbox = row.querySelector(".orderCheckbox");
+                return checkbox && checkbox.checked;
+            });
+
+            // Seçilen siparişleri seçilenler tablosuna ekle
+            selectedRows.forEach(function (row) {
+                selectedTable.appendChild(row);
+            });
+        });
+    </script>
+</body>
+</html>

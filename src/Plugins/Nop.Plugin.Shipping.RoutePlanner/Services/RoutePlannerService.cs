@@ -65,9 +65,16 @@ namespace Nop.Plugin.Shipping.RoutePlanner.Services
 
             var orderViewModels = orders.Select(order => new OrderViewModel
             {
+                Id= order.Id,
                 CustomOrderNumber = order.CustomOrderNumber,
                 PaidDateUtc = order.PaidDateUtc,
-                County = addresses.FirstOrDefault(a => a.Id == order.BillingAddressId)?.County ?? "Bilinmiyor"
+                County = addresses.FirstOrDefault(a => a.Id == order.BillingAddressId)?.County ?? "Bilinmiyor",
+                Address1 = addresses.FirstOrDefault(a => a.Id == order.BillingAddressId)?.Address1 ?? "Bilinmiyor",
+                PhoneNumber = addresses.FirstOrDefault(a => a.Id == order.BillingAddressId)?.PhoneNumber ?? "Bilinmiyor",
+                FirstName = addresses.FirstOrDefault(a => a.Id == order.BillingAddressId)?.FirstName ?? "Bilinmiyor",
+                LastName = addresses.FirstOrDefault(a => a.Id == order.BillingAddressId)?.LastName ?? "Bilinmiyor",
+                ZipPostalCode = addresses.FirstOrDefault(a => a.Id == order.BillingAddressId)?.ZipPostalCode ?? "Bilinmiyor",
+                 
             }).ToList();
 
             return orderViewModels;
