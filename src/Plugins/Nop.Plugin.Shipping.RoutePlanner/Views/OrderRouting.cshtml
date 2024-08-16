@@ -76,7 +76,7 @@
         <table class="table">
             <thead>
                 <tr>
-                    <td><input type="checkbox" id="orderCheckbox" /></td>
+                    <td><input type="checkbox" class="orderCheckbox" /></td>
                     <th>Order Number</th>
                     <th>Paid Date</th>
                     <th>County</th>
@@ -88,12 +88,13 @@
                 </tr>
             </thead>
             <tbody id="orderTableBody">
+                <!-- Dinamik olarak veritabanından gelen siparişler -->
                 @foreach (var order in Model.OrdersNotPickedUp)
                 {
                     <tr>
                         <td><input type="checkbox" class="orderCheckbox" value="@order.Id" /></td>
                         <td>@order.CustomOrderNumber</td>
-                        <td>@order.PaidDateUtc?.ToString("yyyy-MM-dd HH:mm:ss")</td>
+                        <td>@order.PaidDateUtc?.ToString("yyyy-MM-dd")</td>
                         <td>@order.County</td>
                         <td>@order.Address1</td>
                         <td>@order.PhoneNumber</td>
@@ -113,7 +114,7 @@
         <table class="table">
             <thead>
                 <tr>
-                    <th></th>
+                    <th> </th>
                     <th>Order Number</th>
                     <th>Paid Date</th>
                     <th>County</th>
@@ -128,7 +129,6 @@
                 <!-- Seçilen siparişler burada görünecek -->
             </tbody>
         </table>
-
         <!-- Harita -->
         <div id="map" style="height: 400px; width: 100%;"></div>
 
@@ -145,22 +145,29 @@
 
         function initMap() {
             // Depo adresi
-            const depot = { lat: 41.0055, lng: 29.0256 }; // Nakkaş Sk. No:6Acıbadem, 34660 Üsküdar/İstanbul
+            const depot = { lat: 40.9962, lng: 29.0781 }; // örnek mahallesi,ebrar sokak ataşehir/istanbul
 
-            // Haritayı oluştur
+            // Haritayı oluştur (başlangıçta sadece depo gösterilir)
             map = new google.maps.Map(document.getElementById("map"), {
                 center: depot,
                 zoom: 12,
             });
 
-            directionsService = new google.maps.DirectionsService();
-            directionsRenderer = new google.maps.DirectionsRenderer();
-            directionsRenderer.setMap(map);
+            // Sadece depo yer işaretini göster
+            new google.maps.Marker({
+                position: depot,
+                map: map,
+                title: "Depot",
+            });
 
-            // Rota planlamayı başlat
+            // "Rotalamayı Başlat" butonuna tıklandığında harita ve yönlendirme hizmetlerini başlat
             document.getElementById("routeButton").addEventListener("click", function () {
+                directionsService = new google.maps.DirectionsService();
+                directionsRenderer = new google.maps.DirectionsRenderer();
+                directionsRenderer.setMap(map);
                 calculateAndDisplayRoute(directionsService, directionsRenderer, depot);
             });
+
             // Tüm checkbox'ları kontrol eden checkbox
             document.querySelector("thead .orderCheckbox").addEventListener("change", function () {
                 var isChecked = this.checked;
@@ -169,6 +176,7 @@
                     checkbox.checked = isChecked;
                 });
             });
+
             // Filtreleme işlemi
             document.getElementById("filterButton").addEventListener("click", function () {
                 var startDate = document.getElementById("startDate").value;
@@ -194,38 +202,28 @@
                 });
             });
 
-            // Checkboxların tümünü seçme fonksiyonu
-            document.getElementById("selectAll").addEventListener("change", function () {
-                const checkboxes = document.querySelectorAll('.orderCheckbox');
-                checkboxes.forEach(checkbox => {
-                    checkbox.checked = this.checked;
-                });
-            });
+
         }
-        // Seçilen siparişleri sırala
-        document.getElementById("sortButton").addEventListener("click", function () {
-            var selectedTable = document.getElementById("selectedTableBody");
-            var orderTable = document.getElementById("orderTableBody");
-            var selectedRows = Array.from(orderTable.querySelectorAll("tr")).filter(function (row) {
-                var checkbox = row.querySelector(".orderCheckbox");
-                return checkbox && checkbox.checked;
-            });
-
-            // Seçilen siparişleri seçilenler tablosuna ekle
-            selectedRows.forEach(function (row) {
-                selectedTable.appendChild(row);
-            });
-        });
-
         function calculateAndDisplayRoute(directionsService, directionsRenderer, depot) {
             const waypts = [];
             const checkboxes = document.querySelectorAll('.orderCheckbox:checked');
+            const orderInfos = [];
+
             checkboxes.forEach(checkbox => {
                 const row = checkbox.closest('tr');
                 const address = row.cells[4].textContent;
+                const orderNumber = row.cells[0].textContent; // Sipariş numarası
+                const customerName = row.cells[5].textContent + ' ' + row.cells[6].textContent; // Müşteri adı (First Name + Last Name)
                 waypts.push({
                     location: address,
                     stopover: true
+                });
+
+                // Sipariş bilgilerini kaydet
+                orderInfos.push({
+                    orderNumber: orderNumber,
+                    customerName: customerName,
+                    address: address
                 });
             });
 
@@ -242,24 +240,28 @@
                     const summaryPanel = document.getElementById('route-summary');
                     summaryPanel.innerHTML = '';
 
-                    // Toplam mesafeyi ve süreci hesapla
-                    let totalDistance = 0;
-                    let totalDuration = 0;
+                    // Her bir rota segmenti için bir özet ekle
+                    for (let i = 0; i < route.legs.length; i++) {
+                        const routeSegment = i + 1;
+                        summaryPanel.innerHTML += `<b>Route Segment: ${routeSegment}</b><br>`;
+                        summaryPanel.innerHTML += `${route.legs[i].start_address} to `;
+                        summaryPanel.innerHTML += `${route.legs[i].end_address}<br>`;
+                        summaryPanel.innerHTML += `${route.legs[i].distance.text}<br>`;
 
-                    route.legs.forEach((leg, index) => {
-                        totalDistance += leg.distance.value;
-                        totalDuration += leg.duration.value;
-                    });
-
-                    summaryPanel.innerHTML = `
-                                <p><strong>Toplam Mesafe:</strong> ${(totalDistance / 1000).toFixed(2)} km</p>
-                                <p><strong>Toplam Süre:</strong> ${(totalDuration / 60).toFixed(2)} dakika</p>
-                            `;
+                        // Sipariş bilgilerini ekle
+                        const orderInfo = orderInfos[i];
+                        summaryPanel.innerHTML += `<b>Order ${orderInfo.orderNumber}</b><br>`;
+                        summaryPanel.innerHTML += `Customer: ${orderInfo.customerName}<br>`;
+                        summaryPanel.innerHTML += `Address: ${orderInfo.address}<br><br>`;
+                    }
                 } else {
-                    window.alert('Rota bulunamadı: ' + status);
+                    window.alert('Directions request failed due to ' + status);
                 }
             });
         }
+        // Haritayı başlat
+        initMap();
+
     </script>
     <script async defer
             src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCzfTVrn-iHTvvAhZjH58F-yharguYeaR4&callback=initMap">
