@@ -107,10 +107,10 @@
         </table>
 
         <!-- Sırala butonu -->
-        <button id="sortButton">Seçilenleri Sırala</button>
+        <button id="sortButton">Manuel Sıraya Sok</button>
 
         <!-- Seçilenler Tablosu -->
-        <h2>Rotalanacak Siparişler</h2>
+        <h2>Manuel Sıra ile Rotalanacak Siparişler</h2>
         <table class="table">
             <thead>
                 <tr>
@@ -128,15 +128,21 @@
             <tbody id="selectedTableBody">
                 <!-- Seçilen siparişler burada görünecek -->
             </tbody>
+
         </table>
+        <button id="routeButton">Rotalamayı Başlat</button>
+        <button id="customRouteButton">Manuel Sıra ile Rota</button> <!-- Yeni buton -->
+        <button id="sendToCourierButton">Rotayı Kuryeye Gönder</button>        <!-- Rotayı Kuryeye Gönder Butonu -->
         <!-- Harita -->
         <div id="map" style="height: 400px; width: 100%;"></div>
 
         <!-- Rota özeti -->
         <div id="route-summary"></div>
 
-        <button id="routeButton">Rotalamayı Başlat</button>
+
+
     </div>
+    <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCzfTVrn-iHTvvAhZjH58F-yharguYeaR4&callback=initMap"></script>
 
     <script>
         let map;
@@ -145,7 +151,7 @@
 
         function initMap() {
             // Depo adresi
-            const depot = { lat: 40.9962, lng: 29.0781 }; // örnek mahallesi,ebrar sokak ataşehir/istanbul
+            const depot = { lat: 40.9962, lng: 29.0781 }; // Örnek Mahallesi, Ebrar Sokak, Ataşehir/İstanbul
 
             // Haritayı oluştur (başlangıçta sadece depo gösterilir)
             map = new google.maps.Map(document.getElementById("map"), {
@@ -166,6 +172,14 @@
                 directionsRenderer = new google.maps.DirectionsRenderer();
                 directionsRenderer.setMap(map);
                 calculateAndDisplayRoute(directionsService, directionsRenderer, depot);
+            });
+
+            // Manuel rota sırasını başlat
+            document.getElementById("customRouteButton").addEventListener("click", function () {
+                directionsService = new google.maps.DirectionsService();
+                directionsRenderer = new google.maps.DirectionsRenderer();
+                directionsRenderer.setMap(map);
+                calculateAndDisplayCustomRoute(directionsService, directionsRenderer, depot);
             });
 
             // Tüm checkbox'ları kontrol eden checkbox
@@ -201,9 +215,44 @@
                     }
                 });
             });
-
-
         }
+
+        function getRouteURL(response) {
+            const legs = response.routes[0].legs;
+            let routeUrl = "https://www.google.com/maps/dir/?api=1&travelmode=driving";
+
+            // İlk waypoint olarak başlangıç noktasını ekleyelim
+            routeUrl += `&origin=${legs[0].start_location.lat()},${legs[0].start_location.lng()}`;
+
+            // Orta noktalara waypoints olarak ekleme yapalım
+            let waypoints = legs.slice(0, -1).map(leg => {
+                return `${leg.end_location.lat()},${leg.end_location.lng()}`;
+            }).join('|');
+            routeUrl += `&waypoints=${waypoints}`;
+
+            // Son waypoint olarak varış noktasını ekleyelim
+            const lastLeg = legs[legs.length - 1];
+            routeUrl += `&destination=${lastLeg.end_location.lat()},${lastLeg.end_location.lng()}`;
+
+            return routeUrl;
+        }
+
+        document.getElementById("sendToCourierButton").addEventListener("click", function () {
+            if (directionsRenderer) {
+                const directions = directionsRenderer.getDirections();
+                const routeURL = getRouteURL(directions);
+
+                // Rotanın URL'sini kopyala
+                navigator.clipboard.writeText(routeURL).then(() => {
+                    alert("Rota linki kopyalandı! Kuryeye gönderebilirsiniz.");
+                }).catch(err => {
+                    console.error('Rota linki kopyalanamadı:', err);
+                });
+            } else {
+                alert("Lütfen önce rotayı oluşturun.");
+            }
+        });
+
         function calculateAndDisplayRoute(directionsService, directionsRenderer, depot) {
             const waypts = [];
             const checkboxes = document.querySelectorAll('.orderCheckbox:checked');
@@ -212,7 +261,7 @@
             checkboxes.forEach(checkbox => {
                 const row = checkbox.closest('tr');
                 const address = row.cells[4].textContent;
-                const orderNumber = row.cells[0].textContent; // Sipariş numarası
+                const orderNumber = row.cells[1].textContent; // Sipariş numarası
                 const customerName = row.cells[5].textContent + ' ' + row.cells[6].textContent; // Müşteri adı (First Name + Last Name)
                 waypts.push({
                     location: address,
@@ -240,31 +289,81 @@
                     const summaryPanel = document.getElementById('route-summary');
                     summaryPanel.innerHTML = '';
 
-                    // Her bir rota segmenti için bir özet ekle
-                    for (let i = 0; i < route.legs.length; i++) {
-                        const routeSegment = i + 1;
-                        summaryPanel.innerHTML += `<b>Route Segment: ${routeSegment}</b><br>`;
-                        summaryPanel.innerHTML += `${route.legs[i].start_address} to `;
-                        summaryPanel.innerHTML += `${route.legs[i].end_address}<br>`;
-                        summaryPanel.innerHTML += `${route.legs[i].distance.text}<br>`;
-
-                        // Sipariş bilgilerini ekle
-                        const orderInfo = orderInfos[i];
-                        summaryPanel.innerHTML += `<b>Order ${orderInfo.orderNumber}</b><br>`;
-                        summaryPanel.innerHTML += `Customer: ${orderInfo.customerName}<br>`;
-                        summaryPanel.innerHTML += `Address: ${orderInfo.address}<br><br>`;
-                    }
+                    // Özet bilgilerini ekleyin
+                    route.legs.forEach((leg, index) => {
+                        summaryPanel.innerHTML +=
+                            `<b>Stop ${index + 1}:</b> ${orderInfos[index].orderNumber} - ${orderInfos[index].customerName}<br>
+                                        <b>Address:</b> ${leg.end_address}<br>
+                                        <b>Distance:</b> ${leg.distance.text}, <b>Duration:</b> ${leg.duration.text}<br><br>`;
+                    });
                 } else {
                     window.alert('Directions request failed due to ' + status);
                 }
             });
         }
-        // Haritayı başlat
-        initMap();
 
+        function calculateAndDisplayCustomRoute(directionsService, directionsRenderer, depot) {
+            const waypts = [];
+            const selectedRows = document.querySelectorAll('#selectedTableBody tr');
+            const orderInfos = [];
+
+            selectedRows.forEach(row => {
+                const address = row.cells[4].textContent;
+                const orderNumber = row.cells[1].textContent; // Sipariş numarası
+                const customerName = row.cells[5].textContent + ' ' + row.cells[6].textContent; // Müşteri adı (First Name + Last Name)
+                waypts.push({
+                    location: address,
+                    stopover: true
+                });
+
+                // Sipariş bilgilerini kaydet
+                orderInfos.push({
+                    orderNumber: orderNumber,
+                    customerName: customerName,
+                    address: address
+                });
+            });
+
+            directionsService.route({
+                origin: depot,
+                destination: depot,
+                waypoints: waypts,
+                optimizeWaypoints: false, // Manuel sıralama yapılacak
+                travelMode: google.maps.TravelMode.DRIVING
+            }, (response, status) => {
+                if (status === 'OK') {
+                    directionsRenderer.setDirections(response);
+                    const route = response.routes[0];
+                    const summaryPanel = document.getElementById('route-summary');
+                    summaryPanel.innerHTML = '';
+
+                    // Özet bilgilerini ekleyin
+                    route.legs.forEach((leg, index) => {
+                        summaryPanel.innerHTML +=
+                            `<b>Stop ${index + 1}:</b> ${orderInfos[index].orderNumber} - ${orderInfos[index].customerName}<br>
+                                        <b>Address:</b> ${leg.end_address}<br>
+                                        <b>Distance:</b> ${leg.distance.text}, <b>Duration:</b> ${leg.duration.text}<br><br>`;
+                    });
+                } else {
+                    window.alert('Directions request failed due to ' + status);
+                }
+            });
+        }
+
+        // "Sırala" butonuna tıklandığında seçilen satırları aşağıya ekleme işlemi
+        document.getElementById("sortButton").addEventListener("click", function () {
+            var selectedRows = document.querySelectorAll("#orderTableBody .orderCheckbox:checked");
+            var selectedTableBody = document.getElementById("selectedTableBody");
+
+            selectedRows.forEach(function (row) {
+                var newRow = row.closest("tr").cloneNode(true);
+                selectedTableBody.appendChild(newRow);
+                row.checked = false; // Seçimi kaldır
+            });
+        });
+
+        initMap();
     </script>
-    <script async defer
-            src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCzfTVrn-iHTvvAhZjH58F-yharguYeaR4&callback=initMap">
-    </script>
+
 </body>
 </html>
