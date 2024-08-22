@@ -69,6 +69,18 @@
                 <label for="county">İlçe:</label><br>
                 <input type="text" id="county" placeholder="İlçe" />
             </div>
+            <!-- test      -->
+ @*            <div>
+                <label for="county">İlçe:</label><br>
+                <select id="county" name="county" multiple>
+                    @foreach (var county in Model.Counties)
+                    {
+                        <option value="@county.Value">@county.Text</option>
+                    }
+                </select>
+            </div> *@
+            <!-- test      -->
+
             <button id="filterButton">Filtrele</button>
         </div>
 
@@ -133,6 +145,7 @@
         <button id="routeButton">Rotalamayı Başlat</button>
         <button id="customRouteButton">Manuel Sıra ile Rota</button> <!-- Yeni buton -->
         <button id="sendToCourierButton">Rotayı Kuryeye Gönder</button>        <!-- Rotayı Kuryeye Gönder Butonu -->
+        <button onClick="window.location.reload();">Rotayı Sil</button>
         <!-- Harita -->
         <div id="map" style="height: 400px; width: 100%;"></div>
 
@@ -142,7 +155,7 @@
 
 
     </div>
-    <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCzfTVrn-iHTvvAhZjH58F-yharguYeaR4&callback=initMap"></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCdu9Ttl9Qn5WQo-xJ0ZPAUCos6n-z9o-E&callback=initMap" async defer></script>
 
     <script>
         let map;
@@ -222,17 +235,17 @@
             let routeUrl = "https://www.google.com/maps/dir/?api=1&travelmode=driving";
 
             // İlk waypoint olarak başlangıç noktasını ekleyelim
-            routeUrl += `&origin=${legs[0].start_location.lat()},${legs[0].start_location.lng()}`;
+            routeUrl += "&origin=" + legs[0].start_location.lat() + "," + legs[0].start_location.lng();
 
-            // Orta noktalara waypoints olarak ekleme yapalım
-            let waypoints = legs.slice(0, -1).map(leg => {
-                return `${leg.end_location.lat()},${leg.end_location.lng()}`;
-            }).join('|');
-            routeUrl += `&waypoints=${waypoints}`;
+            // Waypoint'leri ekleyelim
+            let waypoints = "";
+            for (let i = 0; i < legs.length - 1; i++) {
+                waypoints += legs[i].end_location.lat() + "," + legs[i].end_location.lng() + "|";
+            }
+            routeUrl += "&waypoints=" + encodeURIComponent(waypoints);
 
-            // Son waypoint olarak varış noktasını ekleyelim
-            const lastLeg = legs[legs.length - 1];
-            routeUrl += `&destination=${lastLeg.end_location.lat()},${lastLeg.end_location.lng()}`;
+            // Son olarak bitiş noktasını ekleyelim
+            routeUrl += "&destination=" + legs[legs.length - 1].end_location.lat() + "," + legs[legs.length - 1].end_location.lng();
 
             return routeUrl;
         }
@@ -261,14 +274,14 @@
             checkboxes.forEach(checkbox => {
                 const row = checkbox.closest('tr');
                 const address = row.cells[4].textContent;
-                const orderNumber = row.cells[1].textContent; // Sipariş numarası
-                const customerName = row.cells[5].textContent + ' ' + row.cells[6].textContent; // Müşteri adı (First Name + Last Name)
+                const orderNumber = row.cells[1].textContent;
+                const customerName = row.cells[5].textContent + ' ' + row.cells[6].textContent;
+
                 waypts.push({
                     location: address,
                     stopover: true
                 });
 
-                // Sipariş bilgilerini kaydet
                 orderInfos.push({
                     orderNumber: orderNumber,
                     customerName: customerName,
@@ -281,21 +294,55 @@
                 destination: depot,
                 waypoints: waypts,
                 optimizeWaypoints: true,
-                travelMode: google.maps.TravelMode.DRIVING
+                travelMode: google.maps.TravelMode.DRIVING,
+                drivingOptions: {
+                    departureTime: new Date(),
+                    trafficModel: 'bestguess' // Diğer seçenekler: 'optimistic', 'pessimistic'
+                }
             }, (response, status) => {
                 if (status === 'OK') {
                     directionsRenderer.setDirections(response);
                     const route = response.routes[0];
                     const summaryPanel = document.getElementById('route-summary');
+                    let totalDistance = 0;
+                    let totalDuration = 0;
+
                     summaryPanel.innerHTML = '';
 
-                    // Özet bilgilerini ekleyin
                     route.legs.forEach((leg, index) => {
+                        // Mesafeyi kilometre cinsinden topla (km varsa)
+                        const distanceValue = parseFloat(leg.distance.text.replace(' km', '').replace(',', '.'));
+                        totalDistance += distanceValue;
+
+                        // Süreyi dakika cinsinden topla
+                        const durationValue = parseFloat(leg.duration.text.replace(' mins', '').replace(' hours', '').replace(' hour', '').replace(',', '.'));
+                        if (leg.duration.text.includes('hour')) {
+                            totalDuration += durationValue * 60; // saat ise dakikaya çevir
+                        } else {
+                            totalDuration += durationValue;
+                        }
+
+                        const matchedOrderInfo = orderInfos.find(order => leg.end_address.includes(order.address));
+
                         summaryPanel.innerHTML +=
-                            `<b>Stop ${index + 1}:</b> ${orderInfos[index].orderNumber} - ${orderInfos[index].customerName}<br>
-                                        <b>Address:</b> ${leg.end_address}<br>
-                                        <b>Distance:</b> ${leg.distance.text}, <b>Duration:</b> ${leg.duration.text}<br><br>`;
+                            `<b>Stop ${index + 1}:</b> ${matchedOrderInfo?.orderNumber || "Depo"} - ${matchedOrderInfo?.customerName || "Depo Sorumlusu"}<br>
+                             <b>Address:</b> ${leg.end_address}<br>
+                             <b>Distance:</b> ${leg.distance.text}, <b>Duration:</b>  ${leg.duration_in_traffic ? leg.duration_in_traffic.text : leg.duration.text}<br><br>`;
+
                     });
+
+                    // Toplam süreyi uygun formatta yazdır
+                    let totalDurationText;
+                    if (totalDuration < 60) {
+                        totalDurationText = `${Math.floor(totalDuration)} minutes`;
+                    } else {
+                        totalDurationText = `${Math.floor(totalDuration / 60)} hours ${Math.floor(totalDuration % 60)} minutes`;
+                    }
+
+                    // Toplam mesafe ve süreyi yazdır
+                    summaryPanel.innerHTML +=
+                        `<b>Total Distance:</b> ${totalDistance.toFixed(2)} km<br>
+                         <b>Total Duration:</b> ${totalDurationText}<br><br>`;
                 } else {
                     window.alert('Directions request failed due to ' + status);
                 }
@@ -324,31 +371,67 @@
                 });
             });
 
+            console.log('Order Infos:', orderInfos); // orderInfos dizisini kontrol edin
+            console.log("test");
+
             directionsService.route({
                 origin: depot,
                 destination: depot,
                 waypoints: waypts,
                 optimizeWaypoints: false, // Manuel sıralama yapılacak
-                travelMode: google.maps.TravelMode.DRIVING
+                travelMode: google.maps.TravelMode.DRIVING,
+                drivingOptions: {
+                    departureTime: new Date(),
+                    trafficModel: 'bestguess' // Diğer seçenekler: 'optimistic', 'pessimistic'
+                }
             }, (response, status) => {
                 if (status === 'OK') {
                     directionsRenderer.setDirections(response);
                     const route = response.routes[0];
                     const summaryPanel = document.getElementById('route-summary');
+                    let totalDistance = 0;
+                    let totalDuration = 0;
+
                     summaryPanel.innerHTML = '';
 
                     // Özet bilgilerini ekleyin
                     route.legs.forEach((leg, index) => {
+                        // Mesafeyi kilometre cinsinden topla (km varsa)
+                        const distanceValue = parseFloat(leg.distance.text.replace(' km', '').replace(',', '.'));
+                        totalDistance += distanceValue;
+
+                        // Süreyi dakika cinsinden topla
+                        const durationValue = parseFloat(leg.duration.text.replace(' mins', '').replace(' hours', '').replace(' hour', '').replace(',', '.'));
+                        if (leg.duration.text.includes('hour')) {
+                            totalDuration += durationValue * 60; // saat ise dakikaya çevir
+                        } else {
+                            totalDuration += durationValue;
+                        }
+
                         summaryPanel.innerHTML +=
-                            `<b>Stop ${index + 1}:</b> ${orderInfos[index].orderNumber} - ${orderInfos[index].customerName}<br>
-                                        <b>Address:</b> ${leg.end_address}<br>
-                                        <b>Distance:</b> ${leg.distance.text}, <b>Duration:</b> ${leg.duration.text}<br><br>`;
+                            `<b>Stop ${index + 1}:</b> ${orderInfos[index]?.orderNumber || "Depo"} - ${orderInfos[index]?.customerName || "Depo Sorumlusu"}<br>
+                             <b>Address:</b> ${leg.end_address}<br>
+                             <b>Distance:</b> ${leg.distance.text}, <b>Duration:</b> ${leg.duration_in_traffic ? leg.duration_in_traffic.text : leg.duration.text}<br><br>`;
                     });
+
+                    // Toplam süreyi uygun formatta yazdır
+                    let totalDurationText;
+                    if (totalDuration < 60) {
+                        totalDurationText = `${Math.floor(totalDuration)} minutes`;
+                    } else {
+                        totalDurationText = `${Math.floor(totalDuration / 60)} hours ${Math.floor(totalDuration % 60)} minutes`;
+                    }
+
+                    // Toplam mesafe ve süreyi yazdır
+                    summaryPanel.innerHTML +=
+                        `<b>Total Distance:</b> ${totalDistance.toFixed(2)} km<br>
+                         <b>Total Duration:</b> ${totalDurationText}<br><br>`;
                 } else {
                     window.alert('Directions request failed due to ' + status);
                 }
             });
         }
+
 
         // "Sırala" butonuna tıklandığında seçilen satırları aşağıya ekleme işlemi
         document.getElementById("sortButton").addEventListener("click", function () {
