@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Nop.Core;
 using Nop.Web.Framework.Mvc.ModelBinding;
 using Nop.Core.Domain.Orders;
+using Microsoft.AspNetCore.Mvc.Rendering;
 
 
 namespace Nop.Plugin.Shipping.RoutePlanner.Models
@@ -21,7 +22,8 @@ namespace Nop.Plugin.Shipping.RoutePlanner.Models
 
         public int OrderCount { get; set; }
         //public List<Order> OrdersNotPickedUp { get; set; }
-        //public List<string> Counties { get; set; }
+        public List<SelectListItem> AvailableCounties { get; set; }
+        public List<string> SelectedCounties { get; set; } // Seçilen ilçeler için
         public List<OrderViewModel> OrdersNotPickedUp { get; set; } // Güncellenmiş veri
 
 

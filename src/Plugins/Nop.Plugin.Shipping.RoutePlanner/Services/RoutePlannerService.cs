@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Dynamic.Core;
 using System.Text;
 using System.Threading.Tasks;
 using Nop.Core.Domain.Common;
@@ -92,6 +93,7 @@ namespace Nop.Plugin.Shipping.RoutePlanner.Services
             var addressCounties = _addressRepository.Table
                 .Where(a => billingAddressIds.Contains(a.Id) && a.City == cityName)
                 .Select(a => a.County)
+                .Distinct()
                 .ToList();
 
             return addressCounties;

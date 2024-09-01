@@ -49,110 +49,237 @@
 </head>
 <body>
     <div class="container">
-        <h2>Filtreli Sipariş Tablosu</h2>
 
-        <!-- Filtreleme Alanı -->
-        <div class="filter-section">
-            <div>
-                <label for="startDate">Başlangıç Tarihi:</label><br>
-                <input type="date" id="startDate" />
+        <section class=" content">
+            <div class="container-fluid">
+                <div class="form-horizontal">
+                    <div class="cards-group">
+                        <div class="card card-default card-search">
+                            <div class="card-body">
+                                <div class="row">
+                                    <h3 class="float-left">Filtrele</h3>
+                                </div>
+                                <!-- Filtreleme Alanı -->
+                                <div class="search-body">
+                                    <!-- Tarih Seçme Başlangıç -->
+
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-group row">
+                                                <div class="col-md-4">
+                                                    <div class="label-wrapper">
+                                                        <label class="col-form-label" for="StartDate">Başlangıç Tarihi:</label><br>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-8">
+                                                    <span class="k-widget k-datepicker">
+                                                        <span class="k-picker-wrap k-state-default">
+                                                            <input id="StartDate" date-role="k-datepicker" name="StartDate" type="text" class="k-input" role="combobox" aria-expanded="false"
+                                                                   aria-owns="StartDate_dateview" autocomplete="off" aria-disabled="false" style="width: 100%;" />
+                                                            <span unselectable="on" class="k-select" aria-label="select" role="button" aria-controls="StartDate_dateview">
+                                                                <span class="k-icon k-i-calendar"></span>
+                                                            </span>
+                                                        </span>
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <div class="form-group row">
+                                                <div class="col-md-4">
+                                                    <div class="label-wrapper">
+                                                        <label class="col-form-label" for="EndDate">Bitiş Tarihi:</label><br>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-8">
+                                                    <span class="k-widget k-datepicker">
+                                                        <span class="k-picker-wrap k-state-default">
+                                                            <input id="EndDate" date-role="k-datepicker" name="EndDate" type="text" class="k-input" role="combobox" aria-expanded="false"
+                                                                   aria-owns="EndDate_dateview" autocomplete="off" aria-disabled="false" style="width: 100%;" />
+                                                            <span unselectable="on" class="k-select" aria-label="select" role="button" aria-controls="EndDate_dateview">
+                                                                <span class="k-icon k-i-calendar"></span>
+                                                            </span>
+                                                        </span>
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Order Number Seçme -->
+                                        <div class="col-md-6">
+                                            <div class="form-group row">
+                                                <div class="col-md-4">
+                                                    <div class="label-wrapper">
+                                                        <label for="orderNumber" class="col-form-label">Sipariş Numarası:</label><br>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-8">
+                                                    <input type="text" autocomplete="off" class="form-control text-box single-line" id="orderNumber" placeholder="Sipariş No" />
+                                                </div>
+                                            </div>
+                                            <!-- İlçe Seçme -->
+                                            <div class="form-group row">
+                                                <div class="col-md-4">
+                                                    <div class="label-wrapper">
+                                                        <label for="county" class="col-form-label">İlçe:</label><br>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-8">
+                                                    <div class="k-widget k-multiselect k-multiselect-clearable" unselectable="on">
+                                                        <select id="county" name="SelectedCounties" class="form-control" multiple="multiple">
+                                                            <ul unselectable="on" class="k-reset" id="OrderStatusIds_taglist">
+                                                                @foreach (var county in Model.AvailableCounties)
+                                                                {
+                                                                    <li role="option" aria-selected="true" class="k-button" unselectable="on" aria-setsize="1">
+                                                                <option value="@county.Value">@county.Text</option>
+                                                                </li>
+                                                                }
+                                                            </ul>
+
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="text-center col-12">
+                                            <button type="button" id="filterButton" class="btn btn-primary btn-search">
+                                                <i class="fas fa-search"></i> Filtrele
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card card-default" >
+                            <div class="card-body">
+                                <div id="orders-grid_wrapper" class="dataTables_wrapper dt-bootstrap4" >
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <div class="dataTables_scroll" style="overflow: hidden; position: relative; border: 0px; width: 100%;">
+                                                <div class="dataTables_scrollHead" style="overflow: hidden; position: relative; border: 0px; width: 100%;" >
+                                                    <div class="dataTables_scrollHeadInner" style="box-sizing: content-box; padding-right: 0px;">
+                                                        <table class="table table-bordered table-hover table-striped dataTable"  role="grid" style="margin-left: 0px; width: 100%;">
+                                                           <!-- baslik-->
+                                                           <h3 class="float-left">Order Bilgileri</h3>
+                                                        </table>
+                                                    </div>
+                                                </div>
+                                                <div class="dataTables_scrollBody" style="position: relative; overflow: auto; width: 100%;">
+                                                    <table class="table table-bordered table-hover table-striped dataTable" width="100%" id="orders-grid" role="grid" aria-describedby="orders-grid_info" style="width: 100%;">
+                                                        <thead>
+                                                            <tr role="row">
+                                                                <th class="sorting_disabled text-center" rowspan="1" colspan="1">
+                                                                    <input class="mastercheckbox" type="checkbox">
+                                                                </th>
+                                                                <th class="sorting_disabled" rowspan="1" colspan="1">Order Number</th>
+                                                                <th class="sorting_disabled" rowspan="1" colspan="1">Paid Date</th>
+                                                                <th class="sorting_disabled" rowspan="1" colspan="1">County</th>
+                                                                <th class="sorting_disabled" rowspan="1" colspan="1">Phone Number</th>
+                                                                <th class="sorting_disabled" rowspan="1" colspan="1">Address</th>
+                                                                <th class="sorting_disabled" rowspan="1" colspan="1">First Name</th>
+                                                                <th class="sorting_disabled" rowspan="1" colspan="1">Last Name</th>
+                                                                <th class="sorting_disabled" rowspan="1" colspan="1">ZipPostalCode</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <!-- orderTableBody-->
+                                                        <tbody id="orderTableBody">
+                                                            @{
+                                                                int rowIndex = 0;
+                                                            }
+                                                            @foreach (var order in Model.OrdersNotPickedUp)
+                                                            {
+                                                                var rowClass = rowIndex % 2 == 0 ? "odd" : "even";
+                                                                <tr class="@rowClass">
+                                                                    <td class="text-center">
+                                                                        <input name="checkbox_orders" value="@order.Id" type="checkbox" class="orderCheckbox">
+                                                                    </td>
+                                                                    <td>@order.CustomOrderNumber</td>
+                                                                    <td>@order.PaidDateUtc?.ToString("yyyy-MM-dd")</td>
+                                                                    <td>@order.County</td>                                                                   
+                                                                    <td>@order.PhoneNumber</td>
+                                                                    <td>@order.Address1</td>
+                                                                    <td>@order.FirstName</td>
+                                                                    <td>@order.LastName</td>
+                                                                    <td>@order.ZipPostalCode</td>
+                                                                </tr>
+                                                                rowIndex++;
+                                                            }
+                                                        </tbody>     
+                                                    </table>
+                                                    <div class="text-center col-12">
+                                                        <button id="routeButton" class="btn btn-primary btn-search">Rotala</button>
+                                                        <button type="button" id="sortButton" class="btn btn-primary btn-search">Manuel Sırala</button>
+                                                    </div>
+                                                    <br />
+                                                    <h3 class="float-left">Manuel Rotalanacak Siparisler</h3>
+                                                    <table class="table table-bordered table-hover table-striped dataTable" width="100%" id="orders-grid" role="grid" aria-describedby="orders-grid_info" style="width: 100%;">
+                                                        <thead>
+                                                            <tr role="row">
+                                                                <th class="sorting_disabled text-center" rowspan="1" colspan="1"></th>
+                                                                <th class="sorting_disabled" rowspan="1" colspan="1">Order Number</th>
+                                                                <th class="sorting_disabled" rowspan="1" colspan="1">Paid Date</th>
+                                                                <th class="sorting_disabled" rowspan="1" colspan="1">County</th>
+                                                                <th class="sorting_disabled" rowspan="1" colspan="1">Phone Number</th>
+                                                                <th class="sorting_disabled" rowspan="1" colspan="1">Address</th>
+                                                                <th class="sorting_disabled" rowspan="1" colspan="1">First Name</th>
+                                                                <th class="sorting_disabled" rowspan="1" colspan="1">Last Name</th>
+                                                                <th class="sorting_disabled" rowspan="1" colspan="1">ZipPostalCode</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody id="selectedTableBody">
+                                                            <!-- Seçilen siparişler burada görünecek -->
+                                                        </tbody>
+                                                    </table>   
+
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row margin-t-5">
+                                        <div class="text-center col-12">
+                                            <button id="customRouteButton" class="btn btn-primary btn-search">Manuel Rotala</button> <!-- Yeni buton -->
+                                            <br />
+                                           
+                                        </div>
+                                    </div>
+                                    
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card card-default">
+                            <div class="card-body">
+                                <div  class="dataTables_wrapper dt-bootstrap4">
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <div class="row margin-t-5">
+                                                <div class="text-center col-12">
+                                                    <h3 class="float-left">Harita</h3>
+                                                    <div id="map" style="height: 400px; width: 100%;"></div>
+                                                    <br />
+                                                    <!-- Rota özeti -->
+                                                    <div id="route-summary"></div>
+                                                    <br />
+                                                    <button id="sendToCourierButton" class="btn btn-primary btn-search">Rotayı Kuryeye Gönder</button>        <!-- Rotayı Kuryeye Gönder Butonu -->
+                                                    <button onClick="window.location.reload();" class="btn btn-primary btn-search">Rotayı Sil</button>
+
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div>
-                <label for="endDate">Bitiş Tarihi:</label><br>
-                <input type="date" id="endDate" />
-            </div>
-            <div>
-                <label for="orderNumber">Sipariş Numarası:</label><br>
-                <input type="text" id="orderNumber" placeholder="Sipariş No" />
-            </div>
-            <div>
-                <label for="county">İlçe:</label><br>
-                <input type="text" id="county" placeholder="İlçe" />
-            </div>
-            <!-- test      -->
- @*            <div>
-                <label for="county">İlçe:</label><br>
-                <select id="county" name="county" multiple>
-                    @foreach (var county in Model.Counties)
-                    {
-                        <option value="@county.Value">@county.Text</option>
-                    }
-                </select>
-            </div> *@
-            <!-- test      -->
+        </section>
 
-            <button id="filterButton">Filtrele</button>
-        </div>
 
-        <!-- Sipariş Tablosu -->
-        <table class="table">
-            <thead>
-                <tr>
-                    <td><input type="checkbox" class="orderCheckbox" /></td>
-                    <th>Order Number</th>
-                    <th>Paid Date</th>
-                    <th>County</th>
-                    <th>Address</th>
-                    <th>Phone Number</th>
-                    <th>First Name</th>
-                    <th>Last Name</th>
-                    <th>ZipPostalCode</th>
-                </tr>
-            </thead>
-            <tbody id="orderTableBody">
-                <!-- Dinamik olarak veritabanından gelen siparişler -->
-                @foreach (var order in Model.OrdersNotPickedUp)
-                {
-                    <tr>
-                        <td><input type="checkbox" class="orderCheckbox" value="@order.Id" /></td>
-                        <td>@order.CustomOrderNumber</td>
-                        <td>@order.PaidDateUtc?.ToString("yyyy-MM-dd")</td>
-                        <td>@order.County</td>
-                        <td>@order.Address1</td>
-                        <td>@order.PhoneNumber</td>
-                        <td>@order.FirstName</td>
-                        <td>@order.LastName</td>
-                        <td>@order.ZipPostalCode</td>
-                    </tr>
-                }
-            </tbody>
-        </table>
+        
 
-        <!-- Sırala butonu -->
-        <button id="sortButton">Manuel Sıraya Sok</button>
-
-        <!-- Seçilenler Tablosu -->
-        <h2>Manuel Sıra ile Rotalanacak Siparişler</h2>
-        <table class="table">
-            <thead>
-                <tr>
-                    <th> </th>
-                    <th>Order Number</th>
-                    <th>Paid Date</th>
-                    <th>County</th>
-                    <th>Address</th>
-                    <th>Phone Number</th>
-                    <th>First Name</th>
-                    <th>Last Name</th>
-                    <th>ZipPostalCode</th>
-                </tr>
-            </thead>
-            <tbody id="selectedTableBody">
-                <!-- Seçilen siparişler burada görünecek -->
-            </tbody>
-
-        </table>
-        <button id="routeButton">Rotalamayı Başlat</button>
-        <button id="customRouteButton">Manuel Sıra ile Rota</button> <!-- Yeni buton -->
-        <button id="sendToCourierButton">Rotayı Kuryeye Gönder</button>        <!-- Rotayı Kuryeye Gönder Butonu -->
-        <button onClick="window.location.reload();">Rotayı Sil</button>
         <!-- Harita -->
-        <div id="map" style="height: 400px; width: 100%;"></div>
-
-        <!-- Rota özeti -->
-        <div id="route-summary"></div>
-
-
+       
 
     </div>
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCdu9Ttl9Qn5WQo-xJ0ZPAUCos6n-z9o-E&callback=initMap" async defer></script>
@@ -196,7 +323,7 @@
             });
 
             // Tüm checkbox'ları kontrol eden checkbox
-            document.querySelector("thead .orderCheckbox").addEventListener("change", function () {
+            document.querySelector("thead .mastercheckbox").addEventListener("change", function () {
                 var isChecked = this.checked;
                 var checkboxes = document.querySelectorAll("tbody .orderCheckbox");
                 checkboxes.forEach(function (checkbox) {
@@ -206,10 +333,14 @@
 
             // Filtreleme işlemi
             document.getElementById("filterButton").addEventListener("click", function () {
-                var startDate = document.getElementById("startDate").value;
-                var endDate = document.getElementById("endDate").value;
+                var startDate = document.getElementById("StartDate").value;
+                var endDate = document.getElementById("EndDate").value;
                 var orderNumber = document.getElementById("orderNumber").value.toLowerCase();
-                var county = document.getElementById("county").value.toLowerCase();
+
+                // Seçilen ilçeleri al
+                var selectedCounties = Array.from(document.getElementById("county").selectedOptions)
+                    .map(option => option.value.toLowerCase());
+
                 var rows = document.querySelectorAll("#orderTableBody tr");
 
                 rows.forEach(function (row) {
@@ -218,10 +349,12 @@
                     var orderCounty = row.cells[3].textContent.toLowerCase();
 
                     // Filtre koşullarını kontrol et
+                    var matchCounty = selectedCounties.length === 0 || selectedCounties.includes(orderCounty);
+
                     if ((startDate === "" || new Date(orderDate) >= new Date(startDate)) &&
                         (endDate === "" || new Date(orderDate) <= new Date(endDate)) &&
                         (orderNumber === "" || orderNum.includes(orderNumber)) &&
-                        (county === "" || orderCounty.includes(county))) {
+                        matchCounty) {
                         row.style.display = ""; // Satırı göster
                     } else {
                         row.style.display = "none"; // Satırı gizle
@@ -273,9 +406,9 @@
 
             checkboxes.forEach(checkbox => {
                 const row = checkbox.closest('tr');
-                const address = row.cells[4].textContent;
+                const address = row.cells[5].textContent;
                 const orderNumber = row.cells[1].textContent;
-                const customerName = row.cells[5].textContent + ' ' + row.cells[6].textContent;
+                const customerName = row.cells[6].textContent + ' ' + row.cells[7].textContent;
 
                 waypts.push({
                     location: address,
@@ -297,7 +430,7 @@
                 travelMode: google.maps.TravelMode.DRIVING,
                 drivingOptions: {
                     departureTime: new Date(),
-                    trafficModel: 'bestguess' // Diğer seçenekler: 'optimistic', 'pessimistic'
+                    trafficModel: 'bestguess'
                 }
             }, (response, status) => {
                 if (status === 'OK') {
@@ -307,47 +440,86 @@
                     let totalDistance = 0;
                     let totalDuration = 0;
 
+                    // Önce tabloyu temizleyelim
                     summaryPanel.innerHTML = '';
 
+                    // Rota Özeti başlığını ekleyelim
+                    const heading = document.createElement('h3');
+                    heading.classList.add('float-left');
+                    heading.textContent = 'Rota Özeti';
+                    summaryPanel.appendChild(heading);
+
+                    // Yeni tabloyu oluşturalım
+                    const table = document.createElement('table');
+                    table.classList.add('table', 'table-bordered', 'table-hover', 'table-striped', 'dataTable');
+
+                    // Tablonun başlık kısmı
+                    const thead = document.createElement('thead');
+                    thead.innerHTML = `
+                        <tr role="row">
+                            <th>Stop</th>
+                            <th>Order Number</th>
+                            <th>Customer Name</th>
+                            <th>Address</th>
+                            <th>Distance</th>
+                            <th>Duration</th>
+                        </tr>
+                    `;
+                    table.appendChild(thead);
+
+                    // Tablonun içerik kısmı
+                    const tbody = document.createElement('tbody');
+
                     route.legs.forEach((leg, index) => {
-                        // Mesafeyi kilometre cinsinden topla (km varsa)
                         const distanceValue = parseFloat(leg.distance.text.replace(' km', '').replace(',', '.'));
                         totalDistance += distanceValue;
 
-                        // Süreyi dakika cinsinden topla
                         const durationValue = parseFloat(leg.duration.text.replace(' mins', '').replace(' hours', '').replace(' hour', '').replace(',', '.'));
                         if (leg.duration.text.includes('hour')) {
-                            totalDuration += durationValue * 60; // saat ise dakikaya çevir
+                            totalDuration += durationValue * 60;
                         } else {
                             totalDuration += durationValue;
                         }
 
                         const matchedOrderInfo = orderInfos.find(order => leg.end_address.includes(order.address));
 
-                        summaryPanel.innerHTML +=
-                            `<b>Stop ${index + 1}:</b> ${matchedOrderInfo?.orderNumber || "Depo"} - ${matchedOrderInfo?.customerName || "Depo Sorumlusu"}<br>
-                             <b>Address:</b> ${leg.end_address}<br>
-                             <b>Distance:</b> ${leg.distance.text}, <b>Duration:</b>  ${leg.duration_in_traffic ? leg.duration_in_traffic.text : leg.duration.text}<br><br>`;
-
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${index + 1}</td>
+                            <td>${matchedOrderInfo?.orderNumber || "Depo"}</td>
+                            <td>${matchedOrderInfo?.customerName || "Depo Sorumlusu"}</td>
+                            <td>${leg.end_address}</td>
+                            <td>${leg.distance.text}</td>
+                            <td>${leg.duration_in_traffic ? leg.duration_in_traffic.text : leg.duration.text}</td>
+                        `;
+                        tbody.appendChild(row);
                     });
 
-                    // Toplam süreyi uygun formatta yazdır
-                    let totalDurationText;
-                    if (totalDuration < 60) {
-                        totalDurationText = `${Math.floor(totalDuration)} minutes`;
-                    } else {
-                        totalDurationText = `${Math.floor(totalDuration / 60)} hours ${Math.floor(totalDuration % 60)} minutes`;
-                    }
+                    table.appendChild(tbody);
 
-                    // Toplam mesafe ve süreyi yazdır
-                    summaryPanel.innerHTML +=
-                        `<b>Total Distance:</b> ${totalDistance.toFixed(2)} km<br>
-                         <b>Total Duration:</b> ${totalDurationText}<br><br>`;
+                    // Toplam satırını ekleyelim
+                    const totalRow = document.createElement('tr');
+                    totalRow.style.fontWeight = 'bold';
+                    totalRow.innerHTML = `
+                        <td colspan="4" style="text-align:right;">Total:</td>
+                        <td>${totalDistance.toFixed(2)} km</td>
+                        <td>${Math.floor(totalDuration)} minutes</td>
+                    `;
+                    tbody.appendChild(totalRow);
+
+                    // Tabloyu summaryPanel'e ekleyelim
+                    summaryPanel.appendChild(table);
+
                 } else {
                     window.alert('Directions request failed due to ' + status);
                 }
             });
         }
+
+
+
+
+
 
         function calculateAndDisplayCustomRoute(directionsService, directionsRenderer, depot) {
             const waypts = [];
@@ -355,9 +527,9 @@
             const orderInfos = [];
 
             selectedRows.forEach(row => {
-                const address = row.cells[4].textContent;
+                const address = row.cells[5].textContent;
                 const orderNumber = row.cells[1].textContent; // Sipariş numarası
-                const customerName = row.cells[5].textContent + ' ' + row.cells[6].textContent; // Müşteri adı (First Name + Last Name)
+                const customerName = row.cells[6].textContent + ' ' + row.cells[7].textContent; // Müşteri adı (First Name + Last Name)
                 waypts.push({
                     location: address,
                     stopover: true
@@ -370,9 +542,6 @@
                     address: address
                 });
             });
-
-            console.log('Order Infos:', orderInfos); // orderInfos dizisini kontrol edin
-            console.log("test");
 
             directionsService.route({
                 origin: depot,
@@ -392,45 +561,82 @@
                     let totalDistance = 0;
                     let totalDuration = 0;
 
+                    // Tabloyu temizleyelim
                     summaryPanel.innerHTML = '';
 
-                    // Özet bilgilerini ekleyin
+                    // Rota Özeti başlığını ekleyelim
+                    const heading = document.createElement('h3');
+                    heading.classList.add('float-left');
+                    heading.textContent = 'Rota Özeti';
+                    summaryPanel.appendChild(heading);
+
+                    // Yeni tabloyu oluşturalım
+                    const table = document.createElement('table');
+                    table.classList.add('table', 'table-bordered', 'table-hover', 'table-striped', 'dataTable');
+
+                    // Tablonun başlık kısmı
+                    const thead = document.createElement('thead');
+                    thead.innerHTML = `
+                        <tr role="row">
+                            <th>Stop</th>
+                            <th>Order Number</th>
+                            <th>Customer Name</th>
+                            <th>Address</th>
+                            <th>Distance</th>
+                            <th>Duration</th>
+                        </tr>
+                    `;
+                    table.appendChild(thead);
+
+                    // Tablonun içerik kısmı
+                    const tbody = document.createElement('tbody');
+
                     route.legs.forEach((leg, index) => {
-                        // Mesafeyi kilometre cinsinden topla (km varsa)
                         const distanceValue = parseFloat(leg.distance.text.replace(' km', '').replace(',', '.'));
                         totalDistance += distanceValue;
 
-                        // Süreyi dakika cinsinden topla
                         const durationValue = parseFloat(leg.duration.text.replace(' mins', '').replace(' hours', '').replace(' hour', '').replace(',', '.'));
                         if (leg.duration.text.includes('hour')) {
-                            totalDuration += durationValue * 60; // saat ise dakikaya çevir
+                            totalDuration += durationValue * 60;
                         } else {
                             totalDuration += durationValue;
                         }
 
-                        summaryPanel.innerHTML +=
-                            `<b>Stop ${index + 1}:</b> ${orderInfos[index]?.orderNumber || "Depo"} - ${orderInfos[index]?.customerName || "Depo Sorumlusu"}<br>
-                             <b>Address:</b> ${leg.end_address}<br>
-                             <b>Distance:</b> ${leg.distance.text}, <b>Duration:</b> ${leg.duration_in_traffic ? leg.duration_in_traffic.text : leg.duration.text}<br><br>`;
+                        const matchedOrderInfo = orderInfos.find(order => leg.end_address.includes(order.address));
+
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${index + 1}</td>
+                            <td>${matchedOrderInfo?.orderNumber || "Depo"}</td>
+                            <td>${matchedOrderInfo?.customerName || "Depo Sorumlusu"}</td>
+                            <td>${leg.end_address}</td>
+                            <td>${leg.distance.text}</td>
+                            <td>${leg.duration_in_traffic ? leg.duration_in_traffic.text : leg.duration.text}</td>
+                        `;
+                        tbody.appendChild(row);
                     });
 
-                    // Toplam süreyi uygun formatta yazdır
-                    let totalDurationText;
-                    if (totalDuration < 60) {
-                        totalDurationText = `${Math.floor(totalDuration)} minutes`;
-                    } else {
-                        totalDurationText = `${Math.floor(totalDuration / 60)} hours ${Math.floor(totalDuration % 60)} minutes`;
-                    }
+                    table.appendChild(tbody);
 
-                    // Toplam mesafe ve süreyi yazdır
-                    summaryPanel.innerHTML +=
-                        `<b>Total Distance:</b> ${totalDistance.toFixed(2)} km<br>
-                         <b>Total Duration:</b> ${totalDurationText}<br><br>`;
+                    // Toplam satırını ekleyelim
+                    const totalRow = document.createElement('tr');
+                    totalRow.style.fontWeight = 'bold';
+                    totalRow.innerHTML = `
+                        <td colspan="4" style="text-align:right;">Total:</td>
+                        <td>${totalDistance.toFixed(2)} km</td>
+                        <td>${Math.floor(totalDuration)} minutes</td>
+                    `;
+                    tbody.appendChild(totalRow);
+
+                    // Tabloyu summaryPanel'e ekleyelim
+                    summaryPanel.appendChild(table);
                 } else {
                     window.alert('Directions request failed due to ' + status);
                 }
             });
         }
+
+
 
 
         // "Sırala" butonuna tıklandığında seçilen satırları aşağıya ekleme işlemi
@@ -446,6 +652,43 @@
         });
 
         initMap();
+    </script>
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+    <script>
+        $(document).ready(function () {
+            $("#county").kendoMultiSelect({
+                select: function (e) {
+                    var selectedValues = this.value();
+                    // Eğer "0" değerine sahip bir eleman seçilmişse, diğer tüm seçimleri temizler
+                    if (this.dataSource.view()[e.item.index()].value === "0") {
+                        this.value(""); // Seçimi temizle
+                    } else if (selectedValues.indexOf("0") !== -1) {
+                        // "0" zaten seçiliyse, diğer "0" dışındaki seçimleri kaldır
+                        selectedValues = $.grep(selectedValues, function (value) {
+                            return value !== "0";
+                        });
+                        this.value(selectedValues);
+                    }
+                },
+                change: function () {
+                    // Eğer hiçbir değer seçilmediyse, varsayılan olarak "0" değerini seç
+                    if (this.value().length === 0) {
+                        this.value(["0"]);
+                    }
+                }
+            }).data("kendoMultiSelect");
+        });
+
+        $(document).ready(function () {
+            $("#StartDate").kendoDatePicker({
+                format: "yyyy-MM-dd"
+            });
+            $("#EndDate").kendoDatePicker({
+                format: "yyyy-MM-dd"
+            });
+        });
     </script>
 
 </body>

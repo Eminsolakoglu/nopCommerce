@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Nop.Core;
 using Nop.Core.Domain.Common;
 using Nop.Core.Domain.Orders;
@@ -72,13 +73,27 @@ namespace Nop.Plugin.Shipping.RoutePlanner.Controllers
         {
             // Modeli oluşturup gerekli verileri atıyoruz
             var ordersWithCounties =await _routePlannerService.GetOrdersNotPickedUpWithCounties();
-
+            var counties = _routePlannerService.GetCounties(); // GetCounties çağrısı
             var model = new ConfigurationModel
             {
-                OrdersNotPickedUp = ordersWithCounties
+                OrdersNotPickedUp = ordersWithCounties,
+                AvailableCounties = counties.Select(c => new SelectListItem
+                {
+                    Value = c,
+                    Text = c
+                }).ToList()
             };
 
             return View("~/Plugins/Shipping.RoutePlanner/Views/OrderRouting.cshtml", model);
+        }
+        [HttpPost]
+        public IActionResult OrderRouting(ConfigurationModel model)
+        {
+            var selectedCounties = model.SelectedCounties;
+
+            // Seçilen ilçelerle ilgili işlemler burada yapılır
+
+            return RedirectToAction("OrderRouting");
         }
 
         public async Task<IActionResult> Configure()
